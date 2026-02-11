@@ -1,4 +1,9 @@
+import { useNavigate } from "react-router-dom";
+
 export default function CandidateLogin() {
+
+    const navigate = useNavigate();
+
     return (
         <div className="min-h-screen bg-white flex items-center justify-center">
             <div className="w-full max-w-md px-6">
@@ -85,10 +90,14 @@ export default function CandidateLogin() {
                     {/* Footer */}
                     <div className="text-center text-sm text-gray-600 mt-6">
                         Não tem uma conta?{" "}
-                        <span className="text-yellow-500 font-medium cursor-pointer hover:underline">
+                        <span
+                            onClick={() => navigate("/register/candidate")}
+                            className="text-yellow-500 font-medium cursor-pointer hover:underline"
+                        >
                             Criar conta
                         </span>
                     </div>
+
                 </div>
 
                 {/* Legal */}
