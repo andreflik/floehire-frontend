@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 export default function App() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="w-full max-w-5xl px-6">
@@ -29,7 +33,10 @@ export default function App() {
                 Encontre vagas, candidate-se e acompanhe seu processo seletivo
               </p>
 
-              <button className="w-full bg-[#FFD700] text-black font-semibold py-2.5 rounded-lg hover:opacity-90 transition">
+              <button
+                onClick={() => navigate("/login/candidate")}
+                className="w-full bg-[#FFD700] text-black font-semibold py-2.5 rounded-lg hover:opacity-90 transition"
+              >
                 Entrar como Candidato
               </button>
 
