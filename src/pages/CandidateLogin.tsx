@@ -30,8 +30,26 @@ export default function CandidateLogin() {
     return (
         <div className="min-h-screen bg-white flex items-center justify-center px-4">
             <div className="w-full max-w-md">
-                <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
-                    <div className="text-center mb-6">
+                <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm relative">
+
+                    <button
+                        onClick={() => navigate("/")}
+                        className="
+                            absolute top-4 left-4
+                            w-9 h-9
+                            flex items-center justify-center
+                            rounded-full
+                            bg-[#FFD700] text-black
+                            shadow-sm
+                            hover:opacity-90
+                            transition
+                        "
+                        title="Voltar"
+                    >
+                        ←
+                    </button>
+
+                    <div className="text-center mb-6 mt-4">
                         <div className="w-12 h-12 mx-auto flex items-center justify-center rounded-full bg-yellow-100 mb-3">
                             <span className="text-xl">👤</span>
                         </div>
