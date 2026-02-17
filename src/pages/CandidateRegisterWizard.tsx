@@ -3,6 +3,7 @@ import StepBasicInfo from "../components/candidate-register/StepBasicInfo";
 import StepEducation from "../components/candidate-register/StepEducation";
 import StepExperience from "../components/candidate-register/StepExperience";
 import StepReview from "../components/candidate-register/StepReview";
+import { post } from "../services/api";
 
 export type CandidateFormData = {
     full_name: string;
@@ -85,33 +86,35 @@ export default function CandidateRegisterWizard() {
         setError(null);
 
         try {
+            const edu = education[0];
+
             const payload = {
                 ...formData,
-                education,
+
+                escolaridade: edu.escolaridade,
+                curso: edu.curso,
+                instituicao: edu.instituicao,
+                ano_conclusao: edu.ano_conclusao,
+                certificacoes: edu.certificacoes,
+                idiomas: edu.idiomas,
+
+                portfolio_file: {},
+                portfolio_link: "",
+
                 experiences,
             };
 
-            const res = await fetch("http://localhost:3333/candidate/register", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-            });
-
-            const json = await res.json();
-
-            if (!res.ok) {
-                throw new Error(json.message || "Erro ao criar conta");
-            }
+            await post<unknown, typeof payload>("/candidate/register", payload);
 
             setSuccess(true);
         } catch (err: unknown) {
             if (err instanceof Error) {
                 setError(err.message);
             } else {
-                setError("Erro inesperado");
+                setError("Erro inesperado ao criar conta");
             }
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -179,7 +182,7 @@ export default function CandidateRegisterWizard() {
                         experiences={experiences}
                         onBack={prevStep}
                         onSubmit={handleSubmit}
-                        loading={loading} // 👈 importante pro botão
+                        loading={loading}
                     />
                 )}
             </div>

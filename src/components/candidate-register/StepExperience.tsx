@@ -62,7 +62,7 @@ export default function StepExperience({
                         <div>
                             <label className="block text-sm font-medium mb-1">Data início</label>
                             <input
-                                type="date"
+                                type="month"
                                 value={exp.start_date}
                                 onChange={(e) => handleChange(index, "start_date", e.target.value)}
                                 className="w-full border rounded-lg px-3 py-2"
@@ -72,7 +72,7 @@ export default function StepExperience({
                         <div>
                             <label className="block text-sm font-medium mb-1">Data fim</label>
                             <input
-                                type="date"
+                                type="month"
                                 value={exp.end_date}
                                 onChange={(e) => handleChange(index, "end_date", e.target.value)}
                                 className="w-full border rounded-lg px-3 py-2"
