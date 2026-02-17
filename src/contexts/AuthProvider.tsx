@@ -1,33 +1,51 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { AuthContext, type AuthState } from "./AuthContext";
+import { post } from "../services/api";
 
 const STORAGE_KEY = "floehire:auth";
 
-function getInitialAuth(): AuthState {
+function getInitialAuth(): AuthState | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-        return { access_token: null, refresh_token: null, candidate: null };
+        return null;
     }
+
     try {
         return JSON.parse(raw) as AuthState;
     } catch {
         localStorage.removeItem(STORAGE_KEY);
-        return { access_token: null, refresh_token: null, candidate: null };
+        return null;
     }
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [auth, setAuthState] = useState<AuthState>(() => getInitialAuth());
+    const [auth, setAuthState] = useState<AuthState | null>(() => getInitialAuth());
 
-    function setAuth(data: AuthState) {
+    function setAuth(data: AuthState | null) {
         setAuthState(data);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+        if (data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        } else {
+            localStorage.removeItem(STORAGE_KEY);
+        }
     }
 
-    function logout() {
-        setAuthState({ access_token: null, refresh_token: null, candidate: null });
-        localStorage.removeItem(STORAGE_KEY);
+    async function logout() {
+        if (auth?.refresh_token) {
+            try {
+                await post<{ message: string }, { refresh_token: string }>(
+                    "/candidate/logout",
+                    { refresh_token: auth.refresh_token }
+                );
+            } catch {
+                console.warn("Erro ao deslogar no backend, limpando sessão local");
+            }
+        }
+
+        // Limpa sessão local de qualquer forma
+        setAuth(null);
     }
 
     async function login(data: { email: string; password: string }) {
@@ -52,8 +70,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuth(newAuth);
     }
 
+    const isAuthenticated = !!auth?.access_token;
+
     return (
-        <AuthContext.Provider value={{ auth, setAuth, logout, login }}>
+        <AuthContext.Provider
+            value={{
+                auth,
+                setAuth,
+                login,
+                logout,
+                isAuthenticated,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
