@@ -5,6 +5,11 @@ export default function CandidateDashboard() {
     const navigate = useNavigate();
     const { auth, logout } = useAuth();
 
+    function handleLogout() {
+        logout();
+        navigate("/login/candidate");
+    }
+
     return (
         <div className="min-h-screen bg-white">
             {/* Top bar */}
@@ -18,11 +23,13 @@ export default function CandidateDashboard() {
                     </div>
 
                     <button
-                        onClick={() => {
-                            logout();
-                            navigate("/login/candidate");
-                        }}
-                        className="text-sm font-medium text-gray-700 hover:text-black"
+                        onClick={handleLogout}
+                        className="
+              px-4 py-2 rounded-lg text-sm font-semibold
+              bg-[#FFD700] text-black shadow-sm
+              transition-colors duration-200
+              hover:bg-red-600 hover:text-white
+            "
                     >
                         Sair
                     </button>
