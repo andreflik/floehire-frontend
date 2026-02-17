@@ -1,6 +1,10 @@
-import { useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import CandidateLogin from "./pages/CandidateLogin";
+import CandidateRegisterWizard from "./pages/CandidateRegisterWizard";
+import CandidateDashboard from "./pages/CandidateDashboard";
+import ProtectedRoute from "../src/routes/ProtectedRoutes";
 
-export default function App() {
+function Home() {
   const navigate = useNavigate();
 
   return (
@@ -62,7 +66,9 @@ export default function App() {
                 Publique vagas, gerencie candidatos e organize seu recrutamento
               </p>
 
-              <button className="w-full bg-[#FFD700] text-black font-semibold py-2.5 rounded-lg hover:opacity-90 transition">
+              <button
+                className="w-full bg-[#FFD700] text-black font-semibold py-2.5 rounded-lg hover:opacity-90 transition"
+              >
                 Entrar como Empresa
               </button>
 
@@ -81,5 +87,27 @@ export default function App() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+
+      <Route path="/login/candidate" element={<CandidateLogin />} />
+      <Route path="/register/candidate" element={<CandidateRegisterWizard />} />
+
+      <Route
+        path="/candidate/dashboard"
+        element={
+          <ProtectedRoute>
+            <CandidateDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
