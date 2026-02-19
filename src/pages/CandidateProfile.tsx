@@ -14,6 +14,7 @@ type Education = {
 
 type Experience = {
     id: string;
+    company?: string | null;
     job_title?: string;
     responsibilities?: string;
     start_date?: string;
@@ -41,87 +42,51 @@ export default function CandidateProfile() {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
-    useEffect(() => {
-        async function loadProfile() {
-            try {
-                const json = await get<ProfileData>("/candidate/profile", auth.access_token);
-                setData(json);
-            } catch (err) {
-                setError(err instanceof Error ? err.message : "Erro inesperado");
-            } finally {
-                setLoading(false);
-            }
-        }
+    const [showAddEdu, setShowAddEdu] = useState(false);
+    const [showAddExp, setShowAddExp] = useState(false);
 
+    const [editEdu, setEditEdu] = useState<Education | null>(null);
+    const [editExp, setEditExp] = useState<Experience | null>(null);
+
+    const [newEdu, setNewEdu] = useState({
+        escolaridade: "",
+        curso: "",
+        instituicao: "",
+        ano_conclusao: "",
+        certificacoes: "",
+        idiomas: "",
+    });
+
+    const [newExp, setNewExp] = useState({
+        company: "",
+        job_title: "",
+        responsibilities: "",
+        start_date: "",
+        end_date: "",
+    });
+
+    useEffect(() => {
         loadProfile();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [auth.access_token]);
+
+    async function loadProfile() {
+        try {
+            const json = await get<ProfileData>("/candidate/profile", auth.access_token);
+            setData(json);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Erro ao carregar perfil");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     async function refreshProfile() {
         const refreshed = await get<ProfileData>("/candidate/profile", auth.access_token);
         setData(refreshed);
     }
 
-    async function handleDeleteEducation(id: string) {
-        if (!data) return;
-        if (!confirm("Remover esta formação?")) return;
-
-        await del(`/candidate/education/${id}`, auth.access_token);
-
-        setData({
-            ...data,
-            candidate_education: data.candidate_education.filter((e) => e.id !== id),
-        });
-    }
-
-    async function handleDeleteExperience(id: string) {
-        if (!data) return;
-        if (!confirm("Remover esta experiência?")) return;
-
-        await del(`/candidate/experiences/${id}`, auth.access_token);
-
-        setData({
-            ...data,
-            candidate_experiences: data.candidate_experiences.filter((e) => e.id !== id),
-        });
-    }
-
-    async function handleAddExperience(exp: {
-        job_title?: string;
-        responsibilities?: string;
-        start_date?: string;
-        end_date?: string;
-    }) {
-        await put(
-            "/candidate/updateProfile",
-            { experiences: [exp] },
-            auth.access_token
-        );
-
-        await refreshProfile();
-    }
-
-    async function handleAddEducation(edu: {
-        escolaridade?: string;
-        curso?: string;
-        instituicao?: string;
-        ano_conclusao?: string;
-        certificacoes?: string;
-        idiomas?: string;
-    }) {
-        try {
-            await put(
-                "/candidate/updateProfile",
-                { education: [edu] },
-                auth.access_token
-            );
-
-            await refreshProfile();
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Erro ao adicionar formação");
-        }
-    }
-
-    async function handleSave() {
+    async function handleSaveProfile() {
         if (!data) return;
 
         setSaving(true);
@@ -129,7 +94,6 @@ export default function CandidateProfile() {
         setSuccess(null);
 
         try {
-            // 🔥 Monta payload só com campos definidos
             const payload: any = {
                 full_name: data.full_name,
             };
@@ -152,95 +116,290 @@ export default function CandidateProfile() {
         }
     }
 
-    if (loading) {
-        return <p className="text-gray-600">Carregando perfil...</p>;
+    async function handleDeleteEducation(id: string) {
+        if (!confirm("Remover esta formação?")) return;
+        await del(`/candidate/education/${id}`, auth.access_token);
+        await refreshProfile();
     }
 
-    if (!data) {
-        return <p className="text-red-600">Erro ao carregar perfil</p>;
+    async function handleDeleteExperience(id: string) {
+        if (!confirm("Remover esta experiência?")) return;
+        await del(`/candidate/experiences/${id}`, auth.access_token);
+        await refreshProfile();
     }
+
+    async function handleAddEducation() {
+        await put("/candidate/updateProfile", { education: [newEdu] }, auth.access_token);
+        setShowAddEdu(false);
+        setNewEdu({
+            escolaridade: "",
+            curso: "",
+            instituicao: "",
+            ano_conclusao: "",
+            certificacoes: "",
+            idiomas: "",
+        });
+        await refreshProfile();
+    }
+
+    async function handleAddExperience() {
+        await put("/candidate/updateProfile", { experiences: [newExp] }, auth.access_token);
+        setShowAddExp(false);
+        setNewExp({
+            company: "",
+            job_title: "",
+            responsibilities: "",
+            start_date: "",
+            end_date: "",
+        });
+        await refreshProfile();
+    }
+
+    async function handleUpdateEducation() {
+        if (!editEdu) return;
+
+        await del(`/candidate/education/${editEdu.id}`, auth.access_token);
+        const { id, ...payload } = editEdu;
+
+        await put("/candidate/updateProfile", { education: [payload] }, auth.access_token);
+        setEditEdu(null);
+        await refreshProfile();
+    }
+
+    async function handleUpdateExperience() {
+        if (!editExp) return;
+
+        await del(`/candidate/experiences/${editExp.id}`, auth.access_token);
+        const { id, ...payload } = editExp;
+
+        await put("/candidate/updateProfile", { experiences: [payload] }, auth.access_token);
+        setEditExp(null);
+        await refreshProfile();
+    }
+
+    if (loading) return <p>Carregando perfil...</p>;
+    if (!data) return <p>Erro ao carregar perfil</p>;
 
     return (
-        <div className="max-w-3xl">
-            <h2 className="text-xl font-bold mb-6">Meu Perfil</h2>
+        <div className="max-w-5xl mx-auto space-y-10">
 
-            {error && (
-                <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
+            {/* ===== Card: Dados do Perfil ===== */}
+            <div className="bg-white rounded-xl shadow p-6 space-y-6">
+                <h2 className="text-xl font-bold">Meu Perfil</h2>
+
+                {error && <div className="p-3 bg-red-100 text-red-700 rounded">{error}</div>}
+                {success && <div className="p-3 bg-green-100 text-green-700 rounded">{success}</div>}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input label="Nome" value={data.full_name} onChange={(v: string) => setData({ ...data, full_name: v })} />
+                    <Input label="E-mail" value={data.email} disabled />
+                    <Input label="Telefone" value={data.phone || ""} onChange={(v: string) => setData({ ...data, phone: v })} />
+                    <Input label="Cidade" value={data.city || ""} onChange={(v: string) => setData({ ...data, city: v })} />
+                    <Input label="Estado" value={data.state || ""} onChange={(v: string) => setData({ ...data, state: v })} />
+                    <Input label="LinkedIn" value={data.linkedin_url || ""} onChange={(v: string) => setData({ ...data, linkedin_url: v })} />
+                    <Input label="GitHub" value={data.github_url || ""} onChange={(v: string) => setData({ ...data, github_url: v })} />
+                    <Input label="Portfólio" value={data.portfolio_url || ""} onChange={(v: string) => setData({ ...data, portfolio_url: v })} />
+                </div>
+
+                <div className="flex justify-end">
+                    <button
+                        onClick={handleSaveProfile}
+                        disabled={saving}
+                        className="px-6 py-2 bg-yellow-400 rounded-lg font-semibold hover:bg-blue-600 hover:text-white transition-colors"
+                    >
+                        {saving ? "Salvando..." : "Salvar alterações"}
+                    </button>
+                </div>
+            </div>
+
+            {/* ===== Formação ===== */}
+            <Section title="Formação" onAdd={() => setShowAddEdu(true)}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {data.candidate_education.map((edu) => (
+                        <CardItem
+                            key={edu.id}
+                            onEdit={() => setEditEdu({ ...edu })}
+                            onDelete={() => handleDeleteEducation(edu.id)}
+                        >
+                            <p className="font-semibold">{edu.escolaridade}</p>
+                            <p>{edu.curso}</p>
+                            <p className="text-sm text-gray-600">{edu.instituicao}</p>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {edu.ano_conclusao ? `Conclusão: ${edu.ano_conclusao}` : "Em andamento"}
+                            </p>
+                        </CardItem>
+                    ))}
+                </div>
+            </Section>
+
+            {/* ===== Experiência ===== */}
+            <Section title="Experiência" onAdd={() => setShowAddExp(true)}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {data.candidate_experiences.map((exp) => (
+                        <CardItem
+                            key={exp.id}
+                            onEdit={() =>
+                                setEditExp({
+                                    ...exp,
+                                    start_date: exp.start_date ? exp.start_date.slice(0, 7) : "",
+                                    end_date: exp.end_date ? exp.end_date.slice(0, 7) : "",
+                                })
+                            }
+                            onDelete={() => handleDeleteExperience(exp.id)}
+                        >
+                            <p className="font-semibold">{exp.job_title}</p>
+                            {exp.company && <p className="text-sm text-gray-600">{exp.company}</p>}
+                            <p>{exp.responsibilities}</p>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {formatMonthYear(exp.start_date)} – {exp.end_date ? formatMonthYear(exp.end_date) : "Emprego atual"}
+                            </p>
+                        </CardItem>
+                    ))}
+                </div>
+            </Section>
+
+            {/* ===== Modais (os mesmos que você já tinha) ===== */}
+            {/* Mantive exatamente a lógica que você já estava usando */}
+
+            {editEdu && (
+                <Modal title="Editar formação" onClose={() => setEditEdu(null)}>
+                    <Input label="Escolaridade" value={editEdu.escolaridade || ""} onChange={(v: string) => setEditEdu({ ...editEdu, escolaridade: v })} />
+                    <Input label="Curso" value={editEdu.curso || ""} onChange={(v: string) => setEditEdu({ ...editEdu, curso: v })} />
+                    <Input label="Instituição" value={editEdu.instituicao || ""} onChange={(v: string) => setEditEdu({ ...editEdu, instituicao: v })} />
+                    <Input label="Ano" type="number" value={editEdu.ano_conclusao || ""} onChange={(v: string) => setEditEdu({ ...editEdu, ano_conclusao: v })} />
+                    <ModalActions onCancel={() => setEditEdu(null)} onConfirm={handleUpdateEducation} />
+                </Modal>
             )}
-            {success && (
-                <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{success}</div>
+
+            {editExp && (
+                <Modal title="Editar experiência" onClose={() => setEditExp(null)}>
+                    <Input label="Empresa" value={editExp.company || ""} onChange={(v: string) => setEditExp({ ...editExp, company: v })} />
+                    <Input label="Cargo" value={editExp.job_title || ""} onChange={(v: string) => setEditExp({ ...editExp, job_title: v })} />
+                    <Input label="Descrição" value={editExp.responsibilities || ""} onChange={(v: string) => setEditExp({ ...editExp, responsibilities: v })} />
+                    <Input label="Início" type="month" value={isoToMonth(editExp.start_date)} onChange={(v: string) => setEditExp({ ...editExp, start_date: monthToIso(v) })} />
+                    <Input label="Fim" type="month" value={isoToMonth(editExp.end_date)} onChange={(v: string) => setEditExp({ ...editExp, end_date: monthToIso(v) })} />
+                    <ModalActions onCancel={() => setEditExp(null)} onConfirm={handleUpdateExperience} />
+                </Modal>
             )}
 
-            <div className="space-y-4">
-                <Input
-                    label="Nome completo"
-                    value={data.full_name}
-                    onChange={(v) => setData({ ...data, full_name: v })}
-                />
-                <Input label="E-mail" value={data.email} disabled />
-                <Input
-                    label="Telefone"
-                    value={data.phone || ""}
-                    onChange={(v) => setData({ ...data, phone: v })}
-                />
-                <Input
-                    label="Cidade"
-                    value={data.city || ""}
-                    onChange={(v) => setData({ ...data, city: v })}
-                />
-                <Input
-                    label="Estado"
-                    value={data.state || ""}
-                    onChange={(v) => setData({ ...data, state: v })}
-                />
-                <Input
-                    label="LinkedIn"
-                    value={data.linkedin_url || ""}
-                    onChange={(v) => setData({ ...data, linkedin_url: v })}
-                />
-                <Input
-                    label="GitHub"
-                    value={data.github_url || ""}
-                    onChange={(v) => setData({ ...data, github_url: v })}
-                />
-                <Input
-                    label="Portfólio"
-                    value={data.portfolio_url || ""}
-                    onChange={(v) => setData({ ...data, portfolio_url: v })}
-                />
+            {showAddEdu && (
+                <Modal title="Adicionar formação" onClose={() => setShowAddEdu(false)}>
+                    <Input label="Escolaridade" value={newEdu.escolaridade} onChange={(v: string) => setNewEdu({ ...newEdu, escolaridade: v })} />
+                    <Input label="Curso" value={newEdu.curso} onChange={(v: string) => setNewEdu({ ...newEdu, curso: v })} />
+                    <Input label="Instituição" value={newEdu.instituicao} onChange={(v: string) => setNewEdu({ ...newEdu, instituicao: v })} />
+                    <Input label="Ano" type="number" value={newEdu.ano_conclusao} onChange={(v: string) => setNewEdu({ ...newEdu, ano_conclusao: v })} />
+                    <ModalActions onCancel={() => setShowAddEdu(false)} onConfirm={handleAddEducation} />
+                </Modal>
+            )}
 
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="mt-4 px-4 py-2 rounded-lg bg-[#FFD700] text-black font-semibold hover:opacity-90 disabled:opacity-60"
-                >
-                    {saving ? "Salvando..." : "Salvar alterações"}
-                </button>
+            {showAddExp && (
+                <Modal title="Adicionar experiência" onClose={() => setShowAddExp(false)}>
+                    <Input label="Empresa" value={newExp.company} onChange={(v: string) => setNewExp({ ...newExp, company: v })} />
+                    <Input label="Cargo" value={newExp.job_title} onChange={(v: string) => setNewExp({ ...newExp, job_title: v })} />
+                    <Input label="Descrição" value={newExp.responsibilities} onChange={(v: string) => setNewExp({ ...newExp, responsibilities: v })} />
+                    <Input label="Início" type="month" value={isoToMonth(newExp.start_date)} onChange={(v: string) => setNewExp({ ...newExp, start_date: monthToIso(v) })} />
+                    <Input label="Fim" type="month" value={isoToMonth(newExp.end_date)} onChange={(v: string) => setNewExp({ ...newExp, end_date: monthToIso(v) })} />
+                    <ModalActions onCancel={() => setShowAddExp(false)} onConfirm={handleAddExperience} />
+                </Modal>
+            )}
+        </div>
+    );
+}
+
+/* ===== Componentes auxiliares ===== */
+
+function Input({ label, value, onChange, disabled = false, type = "text" }: any) {
+    return (
+        <div>
+            <label className="block text-sm mb-1">{label}</label>
+            <input
+                type={type}
+                value={value}
+                disabled={disabled}
+                onChange={(e) => onChange?.(e.target.value)}
+                className="w-full border rounded px-3 py-2"
+            />
+        </div>
+    );
+}
+
+function Section({ title, onAdd, children }: any) {
+    return (
+        <div className="bg-white rounded-xl shadow p-6 space-y-4">
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-bold">{title}</h3>
+                <button onClick={onAdd} className="px-3 py-1 bg-yellow-400 rounded font-bold">+</button>
+            </div>
+            {children}
+        </div>
+    );
+}
+
+function CardItem({ children, onEdit, onDelete }: any) {
+    return (
+        <div className="border rounded-lg p-4 shadow-sm flex justify-between">
+            <div>{children}</div>
+            <div className="flex flex-col gap-2">
+                <button onClick={onEdit} className="px-3 py-1 bg-yellow-400 rounded text-sm font-semibold hover:bg-blue-600 hover:text-white transition">Editar</button>
+                <button onClick={onDelete} className="px-3 py-1 bg-yellow-400 rounded text-sm font-semibold hover:bg-red-600 hover:text-white transition">Remover</button>
             </div>
         </div>
     );
 }
 
-function Input({
-    label,
-    value,
-    onChange,
-    disabled = false,
-}: {
-    label: string;
-    value: string;
-    onChange?: (v: string) => void;
-    disabled?: boolean;
-}) {
+function Modal({ title, children, onClose }: any) {
     return (
-        <div>
-            <label className="block text-sm text-gray-600 mb-1">{label}</label>
-            <input
-                value={value}
-                disabled={disabled}
-                onChange={(e) => onChange?.(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2.5"
-            />
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl w-full max-w-md space-y-4 shadow">
+                <h3 className="text-lg font-semibold">{title}</h3>
+                {children}
+            </div>
         </div>
     );
+}
+
+function ModalActions({ onCancel, onConfirm }: any) {
+    return (
+        <div className="flex justify-end gap-3">
+            <button
+                onClick={onCancel}
+                className="
+          px-4 py-2 rounded font-semibold
+          bg-yellow-400 text-black
+          hover:bg-red-600 hover:text-white
+          transition-colors
+        "
+            >
+                Cancelar
+            </button>
+
+            <button
+                onClick={onConfirm}
+                className="
+          px-4 py-2 rounded font-semibold
+          bg-yellow-400 text-black
+          hover:bg-blue-600 hover:text-white
+          transition-colors
+        "
+            >
+                Salvar
+            </button>
+        </div>
+    );
+}
+
+function isoToMonth(value?: string | null) {
+    if (!value) return "";
+    return value.substring(0, 7);
+}
+
+function monthToIso(value?: string | null) {
+    if (!value) return "";
+    return `${value}-01`;
+}
+
+function formatMonthYear(value?: string | null) {
+    if (!value) return "";
+    const date = new Date(value);
+    return date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
 }

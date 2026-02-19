@@ -1,10 +1,10 @@
-import { get, post, put, del } from "./api";
+import { get, put, del } from "./api";
 
 export function getMyProfile() {
   return get("/candidate/profile");
 }
 
-export function updateMyProfile(data: any) {
+export function updateMyProfile(data: unknown) {
   return put("/candidate/updateProfile", data);
 }
 
