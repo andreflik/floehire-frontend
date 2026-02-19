@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/useAuth";
 import { get, put, del } from "../services/api";
+import DatePicker from "react-datepicker";
 
 type Education = {
     id: string;
@@ -276,8 +277,43 @@ export default function CandidateProfile() {
                     <Input label="Empresa" value={editExp.company || ""} onChange={(v: string) => setEditExp({ ...editExp, company: v })} />
                     <Input label="Cargo" value={editExp.job_title || ""} onChange={(v: string) => setEditExp({ ...editExp, job_title: v })} />
                     <Input label="Descrição" value={editExp.responsibilities || ""} onChange={(v: string) => setEditExp({ ...editExp, responsibilities: v })} />
-                    <Input label="Início" type="month" value={isoToMonth(editExp.start_date)} onChange={(v: string) => setEditExp({ ...editExp, start_date: monthToIso(v) })} />
-                    <Input label="Fim" type="month" value={isoToMonth(editExp.end_date)} onChange={(v: string) => setEditExp({ ...editExp, end_date: monthToIso(v) })} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm mb-1">Início</label>
+
+                            <DatePicker
+                                selected={editExp.start_date ? new Date(editExp.start_date) : null}
+                                onChange={(date: Date | null) =>
+                                    setEditExp({
+                                        ...editExp,
+                                        start_date: date ? date.toISOString().slice(0, 10) : "",
+                                    })
+                                }
+                                dateFormat="MM/yyyy"
+                                showMonthYearPicker
+                                className="w-full border rounded px-3 py-2"
+                                placeholderText="Selecione o mês e ano"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm mb-1">Fim</label>
+
+                            <DatePicker
+                                selected={editExp.end_date ? new Date(editExp.end_date) : null}
+                                onChange={(date: Date | null) =>
+                                    setEditExp({
+                                        ...editExp,
+                                        end_date: date ? date.toISOString().slice(0, 10) : "",
+                                    })
+                                }
+                                dateFormat="MM/yyyy"
+                                showMonthYearPicker
+                                className="w-full border rounded px-3 py-2"
+                                placeholderText="Selecione o mês e ano"
+                            />
+                        </div>
+                    </div>
                     <ModalActions onCancel={() => setEditExp(null)} onConfirm={handleUpdateExperience} />
                 </Modal>
             )}
@@ -297,8 +333,43 @@ export default function CandidateProfile() {
                     <Input label="Empresa" value={newExp.company} onChange={(v: string) => setNewExp({ ...newExp, company: v })} />
                     <Input label="Cargo" value={newExp.job_title} onChange={(v: string) => setNewExp({ ...newExp, job_title: v })} />
                     <Input label="Descrição" value={newExp.responsibilities} onChange={(v: string) => setNewExp({ ...newExp, responsibilities: v })} />
-                    <Input label="Início" type="month" value={isoToMonth(newExp.start_date)} onChange={(v: string) => setNewExp({ ...newExp, start_date: monthToIso(v) })} />
-                    <Input label="Fim" type="month" value={isoToMonth(newExp.end_date)} onChange={(v: string) => setNewExp({ ...newExp, end_date: monthToIso(v) })} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm mb-1">Início</label>
+
+                            <DatePicker
+                                selected={newExp.start_date ? new Date(newExp.start_date) : null}
+                                onChange={(date: Date | null) =>
+                                    setNewExp({
+                                        ...newExp,
+                                        start_date: date ? date.toISOString().slice(0, 10) : "",
+                                    })
+                                }
+                                dateFormat="MM/yyyy"
+                                showMonthYearPicker
+                                className="w-full border rounded px-3 py-2"
+                                placeholderText="Selecione o mês e ano"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm mb-1">Fim</label>
+
+                            <DatePicker
+                                selected={newExp.end_date ? new Date(newExp.end_date) : null}
+                                onChange={(date: Date | null) =>
+                                    setNewExp({
+                                        ...newExp,
+                                        end_date: date ? date.toISOString().slice(0, 10) : "",
+                                    })
+                                }
+                                dateFormat="MM/yyyy"
+                                showMonthYearPicker
+                                className="w-full border rounded px-3 py-2"
+                                placeholderText="Selecione o mês e ano"
+                            />
+                        </div>
+                    </div>
                     <ModalActions onCancel={() => setShowAddExp(false)} onConfirm={handleAddExperience} />
                 </Modal>
             )}
