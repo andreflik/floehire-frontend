@@ -3,6 +3,7 @@ import CandidateLogin from "../pages/CandidateLogin";
 import CandidateRegisterWizard from "../pages/CandidateRegisterWizard";
 import CandidateDashboard from "../pages/CandidateDashboard";
 import CandidateJobs from "../pages/CandidateJobs";
+import CandidateProfile from "../pages/CandidateProfile";
 import ProtectedRoute from "./../routes/ProtectedRoutes";
 import CandidateLayout from "../layouts/CandidateLayout";
 import Home from "../pages/Home";
@@ -25,6 +26,7 @@ export default function AppRoutes() {
             >
                 <Route path="dashboard" element={<CandidateDashboard />} />
                 <Route path="jobs" element={<CandidateJobs />} />
+                <Route path="profile" element={<CandidateProfile />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
