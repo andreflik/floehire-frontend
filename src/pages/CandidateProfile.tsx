@@ -66,6 +66,8 @@ export default function CandidateProfile() {
         end_date: "",
     });
 
+    const [isCurrentJob, setIsCurrentJob] = useState(false);
+
     useEffect(() => {
         loadProfile();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,8 +146,30 @@ export default function CandidateProfile() {
     }
 
     async function handleAddExperience() {
+        if (!newExp.start_date) {
+            alert("Informe a data de início.");
+            return;
+        }
+
+        if (!isCurrentJob && !newExp.end_date) {
+            alert("Informe a data de fim ou marque como emprego atual.");
+            return;
+        }
+
+        if (!isCurrentJob && newExp.end_date && newExp.start_date) {
+            const start = new Date(newExp.start_date);
+            const end = new Date(newExp.end_date);
+            if (end < start) {
+                alert("A data de fim não pode ser anterior a data de início");
+                return;
+            }
+        }
+
+
+
         await put("/candidate/updateProfile", { experiences: [newExp] }, auth.access_token);
         setShowAddExp(false);
+        setIsCurrentJob(false);
         setNewExp({
             company: "",
             job_title: "",
@@ -170,8 +194,28 @@ export default function CandidateProfile() {
     async function handleUpdateExperience() {
         if (!editExp) return;
 
+        if (!editExp.start_date) {
+            alert("Informe a data de início.");
+            return;
+        }
+
+        if (!isCurrentJob && !editExp.end_date) {
+            alert("Informe a data de fim ou marque como emprego atual.");
+            return;
+        }
+
+        if (!isCurrentJob && editExp.end_date && editExp.start_date) {
+            const start = new Date(editExp.start_date);
+            const end = new Date(editExp.end_date);
+            if (end < start) {
+                alert("A data de fim não pode ser anterior à data de início.");
+                return;
+            }
+        }
+
+
         await del(`/candidate/experiences/${editExp.id}`, auth.access_token);
-        const { id, ...payload } = editExp;
+        const { id, ...payload } = { editExp, end_date: isCurrentJob ? null : editExp.end_date };
 
         await put("/candidate/updateProfile", { experiences: [payload] }, auth.access_token);
         setEditExp(null);
@@ -239,13 +283,14 @@ export default function CandidateProfile() {
                     {data.candidate_experiences.map((exp) => (
                         <CardItem
                             key={exp.id}
-                            onEdit={() =>
+                            onEdit={() => {
+                                setIsCurrentJob(!exp.end_date);
                                 setEditExp({
                                     ...exp,
-                                    start_date: exp.start_date ? exp.start_date.slice(0, 7) : "",
-                                    end_date: exp.end_date ? exp.end_date.slice(0, 7) : "",
-                                })
-                            }
+                                    start_date: exp.start_date ? exp.start_date.slice(0, 10) : "",
+                                    end_date: exp.end_date ? exp.end_date.slice(0, 10) : "",
+                                });
+                            }}
                             onDelete={() => handleDeleteExperience(exp.id)}
                         >
                             <p className="font-semibold">{exp.job_title}</p>
@@ -277,10 +322,25 @@ export default function CandidateProfile() {
                     <Input label="Empresa" value={editExp.company || ""} onChange={(v: string) => setEditExp({ ...editExp, company: v })} />
                     <Input label="Cargo" value={editExp.job_title || ""} onChange={(v: string) => setEditExp({ ...editExp, job_title: v })} />
                     <Input label="Descrição" value={editExp.responsibilities || ""} onChange={(v: string) => setEditExp({ ...editExp, responsibilities: v })} />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            checked={isCurrentJob}
+                            onChange={(e) => {
+                                const checked = e.target.checked;
+                                setIsCurrentJob(checked);
+
+                                if (checked) {
+                                    if (editExp) setEditExp({ ...editExp, end_date: "" });
+                                    if (newExp) setNewExp({ ...newExp, end_date: "" });
+                                }
+                            }}
+                        />
+                        <label className="text-sm">Emprego atual</label>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm mb-1">Início</label>
-
                             <DatePicker
                                 selected={editExp.start_date ? new Date(editExp.start_date) : null}
                                 onChange={(date: Date | null) =>
@@ -291,6 +351,7 @@ export default function CandidateProfile() {
                                 }
                                 dateFormat="MM/yyyy"
                                 showMonthYearPicker
+                                maxDate={new Date()}
                                 className="w-full border rounded px-3 py-2"
                                 placeholderText="Selecione o mês e ano"
                             />
@@ -298,7 +359,6 @@ export default function CandidateProfile() {
 
                         <div>
                             <label className="block text-sm mb-1">Fim</label>
-
                             <DatePicker
                                 selected={editExp.end_date ? new Date(editExp.end_date) : null}
                                 onChange={(date: Date | null) =>
@@ -309,8 +369,11 @@ export default function CandidateProfile() {
                                 }
                                 dateFormat="MM/yyyy"
                                 showMonthYearPicker
-                                className="w-full border rounded px-3 py-2"
-                                placeholderText="Selecione o mês e ano"
+                                minDate={editExp.start_date ? new Date(editExp.start_date) : undefined}
+                                maxDate={new Date()}
+                                disabled={isCurrentJob}
+                                className="w-full border rounded px-3 py-2 disabled:bg-gray-100"
+                                placeholderText={isCurrentJob ? "Emprego atual" : "Selecione o mês e ano"}
                             />
                         </div>
                     </div>
