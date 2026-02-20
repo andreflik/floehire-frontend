@@ -8,6 +8,7 @@ import ProtectedRoute from "./../routes/ProtectedRoutes";
 import CandidateLayout from "../layouts/CandidateLayout";
 import Home from "../pages/Home";
 import CandidateApplications from "../pages/CandidateApplications";
+import CandidateHistory from "../pages/CandidateHIstory";
 
 export default function AppRoutes() {
     return (
@@ -29,6 +30,7 @@ export default function AppRoutes() {
                 <Route path="jobs" element={<CandidateJobs />} />
                 <Route path="profile" element={<CandidateProfile />} />
                 <Route path="applications" element={<CandidateApplications />} />
+                <Route path="history" element={<CandidateHistory />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

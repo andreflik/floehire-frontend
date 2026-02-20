@@ -23,7 +23,7 @@ export default function CandidateDashboard() {
             <Card
                 title="Histórico"
                 desc="Veja suas candidaturas anteriores."
-                onClick={() => alert("Depois: histórico")}
+                onClick={() => navigate("/candidate/history")}
             />
         </div>
     );
