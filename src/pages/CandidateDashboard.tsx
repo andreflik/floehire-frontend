@@ -13,7 +13,7 @@ export default function CandidateDashboard() {
             <Card
                 title="Minhas candidaturas"
                 desc="Acompanhe status e etapas do processo."
-                onClick={() => alert("Depois: tela de candidaturas")}
+                onClick={() => navigate("/candidate/applications")}
             />
             <Card
                 title="Meu perfil"

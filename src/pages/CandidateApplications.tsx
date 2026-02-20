@@ -12,7 +12,6 @@ type Job = {
     id: string;
     title: string;
     description?: string | null;
-    requirements?: string | null;
     city: string | null;
     state: string | null;
     work_model: string | null;
@@ -22,68 +21,74 @@ type Job = {
     salary_min?: number | null;
     salary_max?: number | null;
     deadline?: string | null;
-    opened_at?: string | null;
     status?: string | null;
-    hasApplied?: boolean;
 };
 
-export default function CandidateJobs() {
+export default function CandidateApplications() {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [applying, setApplying] = useState(false);
 
+    // 🔐 Helper para pegar token
     function getToken(): string | null {
         const authRaw = localStorage.getItem("floehire:auth");
         const auth = authRaw ? JSON.parse(authRaw) : null;
         return auth?.access_token ?? null;
     }
 
-    async function loadMyApplications(): Promise<string[]> {
-        const token = getToken();
-        if (!token) return [];
-
-        const res = await fetch(`${API_URL}/applications/me`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        if (!res.ok) return [];
-
-        const data = await res.json();
-        return data.map((app: any) => app.job_id);
-    }
-
+    // 📌 Carrega minhas candidaturas e depois busca os detalhes das vagas
     useEffect(() => {
-        async function loadData() {
+        async function loadMyJobs() {
             try {
                 setLoading(true);
 
-                const [jobsRes, appliedJobIds] = await Promise.all([
-                    fetch(`${API_URL}/public/jobs`).then((r) => r.json()),
-                    loadMyApplications(),
-                ]);
+                const token = getToken();
+                if (!token) {
+                    throw new Error("Você precisa estar logado.");
+                }
 
-                const jobsData = jobsRes.data ?? jobsRes;
+                // 1) Busca minhas candidaturas
+                const resApps = await fetch(`${API_URL}/applications/me`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
 
-                const jobsWithAppliedFlag: Job[] = jobsData.map((job: Job) => ({
-                    ...job,
-                    hasApplied: appliedJobIds.includes(job.id),
-                }));
+                if (!resApps.ok) {
+                    throw new Error("Erro ao carregar suas candidaturas");
+                }
 
-                setJobs(jobsWithAppliedFlag);
-            } catch {
-                setError("Erro ao carregar vagas");
+                const applications = await resApps.json();
+                // Esperado: [{ job_id: "..." }, ...]
+
+                const jobIds: string[] = applications.map((app: any) => app.job_id);
+
+                if (jobIds.length === 0) {
+                    setJobs([]);
+                    return;
+                }
+
+                // 2) Busca detalhes de cada vaga
+                const jobsPromises = jobIds.map((jobId) =>
+                    fetch(`${API_URL}/jobs/public/${jobId}`).then((r) => r.json())
+                );
+
+                const jobsResults = await Promise.all(jobsPromises);
+
+                const jobsData: Job[] = jobsResults.map((j: any) => j.data ?? j);
+
+                setJobs(jobsData);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Erro ao carregar dados");
             } finally {
                 setLoading(false);
             }
         }
 
-        loadData();
+        loadMyJobs();
     }, []);
 
     async function openJobDetails(jobId: string) {
@@ -95,61 +100,10 @@ export default function CandidateJobs() {
                 throw new Error(json.message || "Erro ao carregar detalhes da vaga");
             }
 
-            const jobFromList = jobs.find((j) => j.id === jobId);
-
-            setSelectedJob({
-                ...(json.data ?? json),
-                hasApplied: jobFromList?.hasApplied ?? false,
-            });
-
+            setSelectedJob(json.data ?? json);
             setIsModalOpen(true);
         } catch (err) {
             alert(err instanceof Error ? err.message : "Erro ao abrir vaga");
-        }
-    }
-
-    async function applyToJob(jobId: string) {
-        try {
-            setApplying(true);
-
-            const token = getToken();
-
-            if (!token) {
-                throw new Error("Você precisa estar logado para se candidatar.");
-            }
-
-            const res = await fetch(`${API_URL}/applications`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    job_id: jobId,
-                }),
-            });
-
-            const json = await res.json();
-
-            if (!res.ok) {
-                throw new Error(json.message || json.error || "Erro ao se candidatar");
-            }
-
-            setJobs((prev) =>
-                prev.map((job) =>
-                    job.id === jobId ? { ...job, hasApplied: true } : job
-                )
-            );
-
-            if (selectedJob) {
-                setSelectedJob({ ...selectedJob, hasApplied: true });
-            }
-
-            alert("Candidatura realizada com sucesso!");
-        } catch (err) {
-            alert(err instanceof Error ? err.message : "Erro ao se candidatar");
-        } finally {
-            setApplying(false);
         }
     }
 
@@ -171,7 +125,9 @@ export default function CandidateJobs() {
     return (
         <div className="min-h-screen bg-white">
             <div className="max-w-5xl mx-auto px-4 py-8">
-                {loading && <p className="text-gray-600">Carregando vagas...</p>}
+                <h1 className="text-2xl font-bold mb-6">Minhas Candidaturas</h1>
+
+                {loading && <p className="text-gray-600">Carregando suas vagas...</p>}
 
                 {error && (
                     <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -180,7 +136,9 @@ export default function CandidateJobs() {
                 )}
 
                 {!loading && !error && jobs.length === 0 && (
-                    <p className="text-gray-600">Nenhuma vaga disponível no momento.</p>
+                    <p className="text-gray-600">
+                        Você ainda não se candidatou a nenhuma vaga.
+                    </p>
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -202,19 +160,17 @@ export default function CandidateJobs() {
                                 {labelOf(CONTRACT_TYPE_LABELS, job.contract_type)}
                             </p>
 
-                            <div className="mt-4 flex justify-end">
-                                {job.hasApplied ? (
-                                    <span className="text-green-600 font-semibold text-sm">
-                                        ✅ Já se inscreveu
-                                    </span>
-                                ) : (
-                                    <button
-                                        onClick={() => openJobDetails(job.id)}
-                                        className="bg-[#FFD700] text-black font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
-                                    >
-                                        Ver detalhes
-                                    </button>
-                                )}
+                            <div className="mt-4 flex items-center justify-between">
+                                <span className="text-green-600 font-semibold text-sm flex items-center gap-2">
+                                    ✅ Já se inscreveu
+                                </span>
+
+                                <button
+                                    onClick={() => openJobDetails(job.id)}
+                                    className="bg-[#FFD700] text-black font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
+                                >
+                                    Ver detalhes
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -263,30 +219,17 @@ export default function CandidateJobs() {
                             </p>
                         </div>
 
-                        <div className="flex justify-end gap-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-green-600 font-semibold flex items-center gap-2">
+                                ✅ Candidatou
+                            </span>
+
                             <button
                                 onClick={() => setIsModalOpen(false)}
                                 className="px-4 py-2 rounded-lg bg-[#FFD700] text-black font-semibold transition hover:bg-red-600 hover:text-white"
                             >
                                 Fechar
                             </button>
-
-                            {selectedJob.hasApplied ? (
-                                <button
-                                    disabled
-                                    className="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold opacity-70 cursor-not-allowed"
-                                >
-                                    Já inscrito
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => applyToJob(selectedJob.id)}
-                                    disabled={applying}
-                                    className="px-4 py-2 rounded-lg bg-[#FFD700] text-black font-semibold transition hover:bg-green-600 hover:text-white disabled:opacity-50"
-                                >
-                                    {applying ? "Candidatando..." : "Candidatar-se"}
-                                </button>
-                            )}
                         </div>
                     </div>
                 </div>
