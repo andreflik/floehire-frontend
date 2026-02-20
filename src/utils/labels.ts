@@ -28,3 +28,12 @@ export const SENIORITY_LABELS: Record<string, string> = {
   PLENO: "Pleno",
   SENIOR: "Sênior",
 };
+
+export const STAGE_LABELS: Record<string, string> = {
+  Applied: "Candidatura enviada",
+  Screening: "Triagem",
+  Interview: "Entrevista",
+  Offer: "Proposta",
+  Hired: "Contratado",
+  Rejected: "Rejeitado",
+};

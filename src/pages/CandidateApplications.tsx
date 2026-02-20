@@ -6,6 +6,7 @@ import {
     WORK_MODEL_LABELS,
     CONTRACT_TYPE_LABELS,
     SENIORITY_LABELS,
+    STAGE_LABELS
 } from "../utils/labels";
 
 type Job = {
@@ -22,6 +23,7 @@ type Job = {
     salary_max?: number | null;
     deadline?: string | null;
     status?: string | null;
+    currentStage?: string;
 };
 
 export default function CandidateApplications() {
@@ -32,53 +34,36 @@ export default function CandidateApplications() {
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // 🔐 Helper para pegar token
     function getToken(): string | null {
         const authRaw = localStorage.getItem("floehire:auth");
         const auth = authRaw ? JSON.parse(authRaw) : null;
         return auth?.access_token ?? null;
     }
 
-    // 📌 Carrega minhas candidaturas e depois busca os detalhes das vagas
     useEffect(() => {
         async function loadMyJobs() {
             try {
                 setLoading(true);
 
                 const token = getToken();
-                if (!token) {
-                    throw new Error("Você precisa estar logado.");
-                }
+                if (!token) throw new Error("Você precisa estar logado.");
 
-                // 1) Busca minhas candidaturas
-                const resApps = await fetch(`${API_URL}/applications/me`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
+                const res = await fetch(`${API_URL}/applications/me`, {
+                    headers: { Authorization: `Bearer ${token}` },
                 });
 
-                if (!resApps.ok) {
+                if (!res.ok) {
                     throw new Error("Erro ao carregar suas candidaturas");
                 }
 
-                const applications = await resApps.json();
-                // Esperado: [{ job_id: "..." }, ...]
+                const applications = await res.json();
 
-                const jobIds: string[] = applications.map((app: any) => app.job_id);
-
-                if (jobIds.length === 0) {
-                    setJobs([]);
-                    return;
-                }
-
-                // 2) Busca detalhes de cada vaga
-                const jobsPromises = jobIds.map((jobId) =>
-                    fetch(`${API_URL}/jobs/public/${jobId}`).then((r) => r.json())
-                );
-
-                const jobsResults = await Promise.all(jobsPromises);
-
-                const jobsData: Job[] = jobsResults.map((j: any) => j.data ?? j);
+                const jobsData: Job[] = applications.map((app: any) => ({
+                    id: app.job.id,
+                    title: app.job.title,
+                    description: app.job.description,
+                    currentStage: app.current_stage?.name ?? "Applied",
+                }));
 
                 setJobs(jobsData);
             } catch (err) {
@@ -100,7 +85,12 @@ export default function CandidateApplications() {
                 throw new Error(json.message || "Erro ao carregar detalhes da vaga");
             }
 
-            setSelectedJob(json.data ?? json);
+            const jobFromList = jobs.find(j => j.id === jobId);
+
+            setSelectedJob({
+                ...(json.data ?? json),
+                currentStage: jobFromList?.currentStage,
+            });
             setIsModalOpen(true);
         } catch (err) {
             alert(err instanceof Error ? err.message : "Erro ao abrir vaga");
@@ -210,6 +200,12 @@ export default function CandidateApplications() {
                             <p>Salário: {formatMoney(selectedJob.salary_min, selectedJob.salary_max)}</p>
                             <p>Prazo: {formatDate(selectedJob.deadline)}</p>
                             <p>Status: {labelOf(STATUS_LABELS, selectedJob.status)}</p>
+                            <p>
+                                Etapa:{" "}
+                                <span className="text-blue-600 font-semibold">
+                                    {labelOf(STAGE_LABELS, selectedJob.currentStage)}
+                                </span>
+                            </p>
                         </div>
 
                         <div className="mb-4">
