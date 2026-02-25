@@ -1,15 +1,12 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { AuthContext, type AuthState } from "./AuthContext";
-import { post } from "../services/api";
 
 const STORAGE_KEY = "floehire:auth";
 
 function getInitialAuth(): AuthState | null {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-        return null;
-    }
+    if (!raw) return null;
 
     try {
         return JSON.parse(raw) as AuthState;
@@ -33,26 +30,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     async function logout() {
-        if (auth?.refresh_token) {
-            try {
-                await post<{ message: string }, { refresh_token: string }>(
-                    "/candidate/logout",
-                    { refresh_token: auth.refresh_token }
-                );
-            } catch {
-                console.warn("Erro ao deslogar no backend, limpando sessão local");
-            }
-        }
-
-        // Limpa sessão local de qualquer forma
         setAuth(null);
     }
 
-    async function login(data: { email: string; password: string }) {
-        const res = await fetch("http://localhost:3333/candidate/login", {
+    // 🔹 Login CANDIDATO
+    async function login({ email, password }: { email: string; password: string }) {
+        const res = await fetch("http://localhost:3333/auth/candidate/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
+            body: JSON.stringify({ email, password }),
         });
 
         const json = await res.json();
@@ -64,7 +50,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const newAuth: AuthState = {
             access_token: json.access_token,
             refresh_token: json.refresh_token,
-            candidate: json.candidate,
+            role: "candidate",
+            user: json.candidate,
+        };
+
+        setAuth(newAuth);
+    }
+
+    // 🔹 Login RECRUITER
+    async function loginRecruiter({
+        email,
+        password,
+    }: {
+        email: string;
+        password: string;
+    }) {
+        const res = await fetch("http://localhost:3333/recruiter/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+            throw new Error(json.message || "Erro ao fazer login");
+        }
+
+        const newAuth: AuthState = {
+            access_token: json.access_token,
+            refresh_token: json.refresh_token,
+            role: "recruiter",
+            user: json.recruiter,
         };
 
         setAuth(newAuth);
@@ -78,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 auth,
                 setAuth,
                 login,
+                loginRecruiter,
                 logout,
                 isAuthenticated,
             }}

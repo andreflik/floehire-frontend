@@ -10,6 +10,7 @@ import Home from "../pages/Home";
 import CandidateApplications from "../pages/CandidateApplications";
 import CandidateHistory from "../pages/CandidateHistory";
 import RecruiterLogin from "../pages/RecruiterLogin";
+import RecruiterRegister from "../pages/RecruiterRegister";
 import RecruiterDashboard from "../pages/RecruiterDashboard";
 import RecruiterLayout from "../layouts/RecruiterLayout";
 
@@ -20,6 +21,7 @@ export default function AppRoutes() {
             <Route path="/login/candidate" element={<CandidateLogin />} />
             <Route path="/login/recruiter" element={<RecruiterLogin />} />
             <Route path="/register/candidate" element={<CandidateRegisterWizard />} />
+            <Route path="/register/recruiter" element={<RecruiterRegister />} />
 
             {/* Área protegida do candidato */}
             <Route

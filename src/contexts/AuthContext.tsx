@@ -15,10 +15,12 @@ export type Recruiter = {
 
 export type User = Candidate | Recruiter;
 
+export type AuthRole = "candidate" | "recruiter";
+
 export type AuthState = {
     access_token: string | null;
     refresh_token: string | null;
-    role: "candidate" | "recruiter" | null;
+    role: AuthRole | null;
     user: User | null;
 };
 
@@ -26,7 +28,7 @@ export type AuthContextType = {
     auth: AuthState | null;
     setAuth: (data: AuthState) => void;
     logout: () => void;
-    login: (data: { email: string; password: string }) => Promise<void>;
+    loginCandidate: (data: { email: string; password: string }) => Promise<void>;
     loginRecruiter: (data: { email: string; password: string }) => Promise<void>;
     isAuthenticated: boolean;
 };
@@ -45,10 +47,7 @@ function loadAuthFromStorage(): AuthState | null {
     const access_token = localStorage.getItem(STORAGE_KEYS.access);
     const refresh_token = localStorage.getItem(STORAGE_KEYS.refresh);
     const userStr = localStorage.getItem(STORAGE_KEYS.user);
-    const role = localStorage.getItem(STORAGE_KEYS.role) as
-        | "candidate"
-        | "recruiter"
-        | null;
+    const role = localStorage.getItem(STORAGE_KEYS.role) as AuthRole | null;
 
     if (access_token && userStr && role) {
         try {
@@ -72,7 +71,7 @@ function loadAuthFromStorage(): AuthState | null {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [auth, setAuthState] = useState<AuthState | null>(() =>
-        loadAuthFromStorage(),
+        loadAuthFromStorage()
     );
 
     function setAuth(data: AuthState) {
@@ -107,7 +106,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(STORAGE_KEYS.role);
     }
 
-    async function login({ email, password }: { email: string; password: string }) {
+    // ✅ Login do CANDIDATO
+    async function loginCandidate({
+        email,
+        password,
+    }: {
+        email: string;
+        password: string;
+    }) {
         const res = await fetch(`${API_URL}/auth/candidate/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -130,6 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setAuth(authData);
     }
 
+    // ✅ Login do RECRUITER
     async function loginRecruiter({
         email,
         password,
@@ -166,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             value={{
                 auth,
                 setAuth,
-                login,
+                loginCandidate,
                 loginRecruiter,
                 logout,
                 isAuthenticated,
