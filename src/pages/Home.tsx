@@ -63,6 +63,7 @@ export default function Home() {
                             </p>
 
                             <button
+                                onClick={() => navigate("/login/recruiter")}
                                 className="w-full bg-[#FFD700] text-black font-semibold py-2.5 rounded-lg hover:opacity-90 transition"
                             >
                                 Entrar como Empresa

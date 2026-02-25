@@ -8,13 +8,17 @@ import ProtectedRoute from "./../routes/ProtectedRoutes";
 import CandidateLayout from "../layouts/CandidateLayout";
 import Home from "../pages/Home";
 import CandidateApplications from "../pages/CandidateApplications";
-import CandidateHistory from "../pages/CandidateHIstory";
+import CandidateHistory from "../pages/CandidateHistory";
+import RecruiterLogin from "../pages/RecruiterLogin";
+import RecruiterDashboard from "../pages/RecruiterDashboard";
+import RecruiterLayout from "../layouts/RecruiterLayout";
 
 export default function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login/candidate" element={<CandidateLogin />} />
+            <Route path="/login/recruiter" element={<RecruiterLogin />} />
             <Route path="/register/candidate" element={<CandidateRegisterWizard />} />
 
             {/* Área protegida do candidato */}
@@ -31,6 +35,17 @@ export default function AppRoutes() {
                 <Route path="profile" element={<CandidateProfile />} />
                 <Route path="applications" element={<CandidateApplications />} />
                 <Route path="history" element={<CandidateHistory />} />
+            </Route>
+
+            <Route
+                path="/recruiter"
+                element={
+                    <ProtectedRoute role="recruiter">
+                        <RecruiterLayout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route path="dashboard" element={<RecruiterDashboard />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

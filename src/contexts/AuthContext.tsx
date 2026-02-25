@@ -7,10 +7,19 @@ export type Candidate = {
     email: string;
 };
 
+export type Recruiter = {
+    id: string;
+    company_name: string;
+    email: string;
+};
+
+export type User = Candidate | Recruiter;
+
 export type AuthState = {
     access_token: string | null;
     refresh_token: string | null;
-    candidate: Candidate | null;
+    role: "candidate" | "recruiter" | null;
+    user: User | null;
 };
 
 export type AuthContextType = {
@@ -18,36 +27,42 @@ export type AuthContextType = {
     setAuth: (data: AuthState) => void;
     logout: () => void;
     login: (data: { email: string; password: string }) => Promise<void>;
+    loginRecruiter: (data: { email: string; password: string }) => Promise<void>;
     isAuthenticated: boolean;
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// 🔑 Chaves separadas para CANDIDATE
 const STORAGE_KEYS = {
-    access: "candidate_access_token",
-    refresh: "candidate_refresh_token",
-    user: "candidate_user",
+    access: "auth_access_token",
+    refresh: "auth_refresh_token",
+    user: "auth_user",
+    role: "auth_role",
 };
 
 function loadAuthFromStorage(): AuthState | null {
     const access_token = localStorage.getItem(STORAGE_KEYS.access);
     const refresh_token = localStorage.getItem(STORAGE_KEYS.refresh);
-    const candidateStr = localStorage.getItem(STORAGE_KEYS.user);
+    const userStr = localStorage.getItem(STORAGE_KEYS.user);
+    const role = localStorage.getItem(STORAGE_KEYS.role) as
+        | "candidate"
+        | "recruiter"
+        | null;
 
-    if (access_token && candidateStr) {
+    if (access_token && userStr && role) {
         try {
             return {
-                access_token, // ⚠️ SEM stringify, é string pura
+                access_token,
                 refresh_token,
-                candidate: JSON.parse(candidateStr),
+                role,
+                user: JSON.parse(userStr),
             };
         } catch {
-            // Se der erro de parse, limpa tudo
             localStorage.removeItem(STORAGE_KEYS.access);
             localStorage.removeItem(STORAGE_KEYS.refresh);
             localStorage.removeItem(STORAGE_KEYS.user);
+            localStorage.removeItem(STORAGE_KEYS.role);
             return null;
         }
     }
@@ -56,14 +71,14 @@ function loadAuthFromStorage(): AuthState | null {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    // ✅ Inicializa direto do localStorage (sem useEffect)
-    const [auth, setAuthState] = useState<AuthState | null>(() => loadAuthFromStorage());
+    const [auth, setAuthState] = useState<AuthState | null>(() =>
+        loadAuthFromStorage(),
+    );
 
     function setAuth(data: AuthState) {
         setAuthState(data);
 
         if (data.access_token) {
-            // ⚠️ Salva token PURO (sem JSON.stringify)
             localStorage.setItem(STORAGE_KEYS.access, data.access_token);
         } else {
             localStorage.removeItem(STORAGE_KEYS.access);
@@ -75,10 +90,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.removeItem(STORAGE_KEYS.refresh);
         }
 
-        if (data.candidate) {
-            localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(data.candidate));
+        if (data.user && data.role) {
+            localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(data.user));
+            localStorage.setItem(STORAGE_KEYS.role, data.role);
         } else {
             localStorage.removeItem(STORAGE_KEYS.user);
+            localStorage.removeItem(STORAGE_KEYS.role);
         }
     }
 
@@ -87,6 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(STORAGE_KEYS.access);
         localStorage.removeItem(STORAGE_KEYS.refresh);
         localStorage.removeItem(STORAGE_KEYS.user);
+        localStorage.removeItem(STORAGE_KEYS.role);
     }
 
     async function login({ email, password }: { email: string; password: string }) {
@@ -105,7 +123,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const authData: AuthState = {
             access_token: data.access_token,
             refresh_token: data.refresh_token,
-            candidate: data.candidate,
+            role: "candidate",
+            user: data.candidate,
+        };
+
+        setAuth(authData);
+    }
+
+    async function loginRecruiter({
+        email,
+        password,
+    }: {
+        email: string;
+        password: string;
+    }) {
+        const res = await fetch(`${API_URL}/recruiter/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.message || "Erro ao fazer login");
+        }
+
+        const authData: AuthState = {
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            role: "recruiter",
+            user: data.recruiter,
         };
 
         setAuth(authData);
@@ -119,6 +167,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 auth,
                 setAuth,
                 login,
+                loginRecruiter,
                 logout,
                 isAuthenticated,
             }}
