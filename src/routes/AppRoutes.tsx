@@ -13,6 +13,7 @@ import RecruiterLogin from "../pages/RecruiterLogin";
 import RecruiterRegister from "../pages/RecruiterRegister";
 import RecruiterDashboard from "../pages/RecruiterDashboard";
 import RecruiterLayout from "../layouts/RecruiterLayout";
+import RecruiterJobNew from "../pages/RecruiterJobNew";
 
 export default function AppRoutes() {
     return (
@@ -48,6 +49,7 @@ export default function AppRoutes() {
                 }
             >
                 <Route path="dashboard" element={<RecruiterDashboard />} />
+                <Route path="jobs/new" element={<RecruiterJobNew />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
