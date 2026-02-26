@@ -14,6 +14,8 @@ import RecruiterRegister from "../pages/RecruiterRegister";
 import RecruiterDashboard from "../pages/RecruiterDashboard";
 import RecruiterLayout from "../layouts/RecruiterLayout";
 import RecruiterJobNew from "../pages/RecruiterJobNew";
+import RecruiterPipeline from "../pages/RecruiterPipeline";
+import RecruiterPipelineList from "../pages/RecruiterPipelineList";
 
 export default function AppRoutes() {
     return (
@@ -50,6 +52,8 @@ export default function AppRoutes() {
             >
                 <Route path="dashboard" element={<RecruiterDashboard />} />
                 <Route path="jobs/new" element={<RecruiterJobNew />} />
+                <Route path="pipeline" element={<RecruiterPipelineList />} />
+                <Route path="pipeline/:jobId" element={<RecruiterPipeline />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
