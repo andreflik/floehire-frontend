@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "../services/api";
 import { useAuth } from "../contexts/useAuth";
+import { STAGE_LABELS } from "../utils/labels";
 
 /* =======================
    Types
@@ -70,6 +71,32 @@ export default function RecruiterPipeline() {
         }
     }
 
+    async function moveApplication(applicationId: string, toStageId: string) {
+        try {
+            const res = await fetch(
+                `${API_URL}/pipeline/applications/${applicationId}/move`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${auth?.access_token}`,
+                    },
+                    body: JSON.stringify({ toStageId }),
+                }
+            );
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data?.error || "Erro ao mover candidato");
+            }
+
+            await loadPipeline();
+        } catch (err: any) {
+            alert(err.message || "Erro ao mover candidato");
+        }
+    }
+
     useEffect(() => {
         if (jobId) {
             loadPipeline();
@@ -135,7 +162,7 @@ export default function RecruiterPipeline() {
                         {/* Column header */}
                         <div className="flex items-center justify-between mb-3">
                             <h2 className="font-semibold text-black">
-                                {stage.name}
+                                {STAGE_LABELS[stage.name] ?? stage.name}
                             </h2>
                             <span className="text-sm text-gray-500">
                                 {stage.candidates.length}
@@ -183,17 +210,28 @@ export default function RecruiterPipeline() {
                                         </div>
                                     )}
 
-                                    <button
-                                        onClick={() => alert("Depois ligamos o mover de etapa 😉")}
-                                        className="
-                      mt-2
-                      text-sm
-                      text-blue-600
-                      hover:underline
-                    "
-                                    >
-                                        Mover de etapa
-                                    </button>
+                                    <div className="mt-2">
+                                        <select
+                                            className="w-full border border-gray-300 rounded-lg px-2 py-1 text-sm"
+                                            defaultValue=""
+                                            onChange={(e) => {
+                                                const toStageId = e.target.value;
+                                                if (toStageId) {
+                                                    moveApplication(app.application_id, toStageId);
+                                                }
+                                            }}
+                                        >
+                                            <option value="" disabled>
+                                                Mover para...
+                                            </option>
+
+                                            {pipeline.stages.map((s) => (
+                                                <option key={s.id} value={s.id}>
+                                                    {STAGE_LABELS[s.name] ?? s.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             ))}
                         </div>
