@@ -143,6 +143,7 @@ function DraggableCard({
         opacity: isMoving ? 0.6 : isDragging ? 0.7 : 1,
     };
 
+
     return (
         <div
             ref={setNodeRef}
@@ -281,6 +282,22 @@ export default function RecruiterPipeline() {
         }
     }
 
+    function handleDragEnd(event: DragEndEvent) {
+        const { active, over } = event;
+
+        if (!over) return;
+
+        const applicationId = String(active.id);
+        const toStageId = String(over.id);
+
+        const fromStageId = active.data.current?.fromStageId;
+
+        // Se soltou na mesma coluna, ignora
+        if (fromStageId === toStageId) return;
+
+        moveApplication(applicationId, toStageId);
+    }
+
     useEffect(() => {
         if (jobId) loadPipeline();
     }, [jobId]);
@@ -303,7 +320,7 @@ export default function RecruiterPipeline() {
                 <h1 className="text-2xl font-bold">Pipeline da Vaga</h1>
             </div>
 
-            <DndContext sensors={sensors}>
+            <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
                 <div className="flex flex-col md:flex-row gap-4">
                     {sortedStages.map((stage) => (
                         <DroppableColumn
