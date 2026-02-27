@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_URL } from "../services/api";
 import { useAuth } from "../contexts/useAuth";
-import { STAGE_LABELS } from "../utils/labels";
+import { STAGE_LABELS, STAGE_BADGE_CLASSES } from "../utils/labels";
 import { toast } from "sonner";
 
 import {
@@ -51,12 +51,14 @@ type PipelineResponse = {
 
 function DroppableColumn({
     stageId,
+    stageName,
     title,
     count,
     children,
 }: {
     stageId: string;
-    title: string;
+    stageName: string; // <- chave real (Applied, Screening...)
+    title: string;     // <- label traduzida
     count: number;
     children: React.ReactNode;
 }) {
@@ -79,8 +81,27 @@ function DroppableColumn({
       `}
         >
             <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold text-black">{title}</h2>
-                <span className="text-sm text-gray-500">{count}</span>
+                <span
+                    className={`
+                        px-3 py-1
+                        text-xs font-semibold
+                        rounded-full
+                        ${STAGE_BADGE_CLASSES[stageName] ?? "bg-gray-100 text-gray-600"}
+                        `}
+                >
+                    {title}
+                </span>
+
+                <span
+                    className={`
+                        text-xs font-semibold
+                        px-2 py-1
+                        rounded-lg
+                        ${STAGE_BADGE_CLASSES[stageName] ?? "bg-gray-100 text-gray-600"}
+                    `}
+                >
+                    {count}
+                </span>
             </div>
 
             {children}
@@ -389,6 +410,7 @@ export default function RecruiterPipeline() {
                         <DroppableColumn
                             key={stage.id}
                             stageId={stage.id}
+                            stageName={stage.name}
                             title={STAGE_LABELS[stage.name] ?? stage.name}
                             count={stage.candidates.length}
                         >
