@@ -46,3 +46,17 @@ export const STAGE_BADGE_CLASSES: Record<string, string> = {
   Hired: "bg-green-100 text-green-700",
   Rejected: "bg-red-100 text-red-700",
 };
+
+export const JOB_STATUS_LABELS: Record<string, string> = {
+  OPEN: "Aberta",
+  PAUSED: "Pausada",
+  CLOSED: "Encerrada",
+  ARCHIVED: "Arquivada",
+};
+
+export const JOB_STATUS_CLASSES: Record<string, string> = {
+  OPEN: "bg-green-100 text-green-700",
+  PAUSED: "bg-yellow-100 text-yellow-700",
+  CLOSED: "bg-gray-100 text-gray-600",
+  ARCHIVED: "bg-red-100 text-red-700",
+};
