@@ -151,7 +151,7 @@ export default function RecruiterJobs() {
                                 </button>
 
                                 <button
-                                    onClick={() => navigate(`/recruiter/jobs/${job.id}`)}
+                                    onClick={() => navigate(`/recruiter/jobs/${job.id}/edit`)}
                                     className="
                     flex-1
                     border
