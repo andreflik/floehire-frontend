@@ -9,7 +9,7 @@ type EducationItem = {
     idiomas: string;
 };
 
-type Props = {
+type EducationProps = {
     education: EducationItem[];
     onChange: (education: EducationItem[]) => void;
     onNext: () => void;
@@ -21,7 +21,7 @@ export default function StepEducation({
     onChange,
     onNext,
     onBack,
-}: Props) {
+}: EducationProps) {
     function handleChange(
         index: number,
         field: keyof EducationItem,
@@ -83,6 +83,7 @@ export default function StepEducation({
                         <h3 className="font-medium text-black">
                             Formação {index + 1}
                         </h3>
+
                         <button
                             type="button"
                             onClick={() => removeEducation(index)}
@@ -93,7 +94,7 @@ export default function StepEducation({
                     </div>
 
                     <input
-                        placeholder="Escolaridade (ex: Graduação, Pós, etc)"
+                        placeholder="Escolaridade"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5"
                         value={item.escolaridade}
                         onChange={(e) =>
@@ -120,6 +121,7 @@ export default function StepEducation({
                     />
 
                     <input
+                        type="number"
                         placeholder="Ano de conclusão"
                         className="w-full border border-gray-300 rounded-lg px-4 py-2.5"
                         value={item.ano_conclusao}
@@ -160,14 +162,14 @@ export default function StepEducation({
                 <button
                     type="button"
                     onClick={onBack}
-                    className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition"
+                    className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
                     Voltar
                 </button>
 
                 <button
                     type="submit"
-                    className="px-6 py-2.5 rounded-lg bg-[#FFD700] text-black font-semibold hover:opacity-90 transition"
+                    className="px-6 py-2.5 rounded-lg bg-[#FFD700] text-black font-semibold hover:opacity-90"
                 >
                     Próximo
                 </button>

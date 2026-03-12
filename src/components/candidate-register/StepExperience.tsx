@@ -1,3 +1,5 @@
+import React from "react";
+
 type ExperienceItem = {
     job_title: string;
     start_date: string;
@@ -5,7 +7,7 @@ type ExperienceItem = {
     responsibilities: string;
 };
 
-type Props = {
+type ExperienceProps = {
     experiences: ExperienceItem[];
     onChange: (data: ExperienceItem[]) => void;
     onNext: () => void;
@@ -17,8 +19,13 @@ export default function StepExperience({
     onChange,
     onNext,
     onBack,
-}: Props) {
-    function handleChange(index: number, field: keyof ExperienceItem, value: string) {
+}: ExperienceProps) {
+
+    function handleChange(
+        index: number,
+        field: keyof ExperienceItem,
+        value: string
+    ) {
         const updated = [...experiences];
         updated[index] = { ...updated[index], [field]: value };
         onChange(updated);
@@ -43,45 +50,69 @@ export default function StepExperience({
 
     return (
         <div className="bg-white border rounded-xl p-6 shadow-sm">
-            <h2 className="text-xl font-semibold mb-4">Experiência Profissional</h2>
+
+            <h2 className="text-xl font-semibold mb-4">
+                Experiência Profissional
+            </h2>
 
             {experiences.map((exp, index) => (
                 <div key={index} className="border rounded-lg p-4 mb-4">
+
                     <div className="mb-3">
-                        <label className="block text-sm font-medium mb-1">Cargo</label>
+                        <label className="block text-sm font-medium mb-1">
+                            Cargo
+                        </label>
+
                         <input
                             type="text"
                             value={exp.job_title}
-                            onChange={(e) => handleChange(index, "job_title", e.target.value)}
+                            onChange={(e) =>
+                                handleChange(index, "job_title", e.target.value)
+                            }
                             className="w-full border rounded-lg px-3 py-2"
                             placeholder="Ex: Desenvolvedor Backend"
                         />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+
                         <div>
-                            <label className="block text-sm font-medium mb-1">Data início</label>
+                            <label className="block text-sm font-medium mb-1">
+                                Data início
+                            </label>
+
                             <input
                                 type="month"
                                 value={exp.start_date}
-                                onChange={(e) => handleChange(index, "start_date", e.target.value)}
+                                onChange={(e) =>
+                                    handleChange(index, "start_date", e.target.value)
+                                }
                                 className="w-full border rounded-lg px-3 py-2"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium mb-1">Data fim</label>
+                            <label className="block text-sm font-medium mb-1">
+                                Data fim
+                            </label>
+
                             <input
                                 type="month"
                                 value={exp.end_date}
-                                onChange={(e) => handleChange(index, "end_date", e.target.value)}
+                                onChange={(e) =>
+                                    handleChange(index, "end_date", e.target.value)
+                                }
                                 className="w-full border rounded-lg px-3 py-2"
                             />
                         </div>
+
                     </div>
 
                     <div className="mb-3">
-                        <label className="block text-sm font-medium mb-1">Responsabilidades</label>
+                        <label className="block text-sm font-medium mb-1">
+                            Responsabilidades
+                        </label>
+
                         <textarea
                             value={exp.responsibilities}
                             onChange={(e) =>
@@ -114,6 +145,7 @@ export default function StepExperience({
             </button>
 
             <div className="flex justify-between">
+
                 <button
                     type="button"
                     onClick={onBack}
@@ -129,6 +161,7 @@ export default function StepExperience({
                 >
                     Próximo
                 </button>
+
             </div>
         </div>
     );
