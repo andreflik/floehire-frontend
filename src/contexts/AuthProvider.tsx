@@ -33,9 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuth(null);
     }
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     // 🔹 Login CANDIDATO
     async function login({ email, password }: { email: string; password: string }) {
-        const res = await fetch("http://localhost:3333/candidate/login", {
+        const res = await fetch(`${API_URL}/candidate/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
@@ -65,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: string;
         password: string;
     }) {
-        const res = await fetch("http://localhost:3333/recruiter/login", {
+        const res = await fetch(`${API_URL}/recruiter/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password }),
