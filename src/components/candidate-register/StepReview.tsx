@@ -12,7 +12,7 @@ type EducationItem = {
 type ExperienceItem = {
     job_title: string;
     start_date: string;
-    end_date: string;
+    end_date: string | null;
     responsibilities: string;
 };
 
@@ -74,7 +74,9 @@ export default function StepReview({
                     <div key={index} className="mb-3 text-sm text-gray-700">
                         <p><strong>Cargo:</strong> {exp.job_title || "-"}</p>
                         <p><strong>Início:</strong> {exp.start_date || "-"}</p>
-                        <p><strong>Fim:</strong> {exp.end_date || "-"}</p>
+                        <p>
+                            <strong>Fim:</strong> {exp.end_date ? exp.end_date : "Atual"}
+                        </p>
                         <p><strong>Responsabilidades:</strong> {exp.responsibilities || "-"}</p>
                         <hr className="my-2" />
                     </div>

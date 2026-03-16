@@ -3,8 +3,9 @@ import React from "react";
 type ExperienceItem = {
     job_title: string;
     start_date: string;
-    end_date: string;
+    end_date: string | null;
     responsibilities: string;
+    is_current?: boolean;
 };
 
 type ExperienceProps = {
@@ -37,7 +38,7 @@ export default function StepExperience({
             {
                 job_title: "",
                 start_date: "",
-                end_date: "",
+                end_date: null,
                 responsibilities: "",
             },
         ]);
@@ -46,6 +47,18 @@ export default function StepExperience({
     function removeExperience(index: number) {
         const updated = experiences.filter((_, i) => i !== index);
         onChange(updated.length ? updated : experiences);
+    }
+
+    function toggleCurrent(index: number) {
+        const updated = [...experiences];
+
+        updated[index].is_current = !updated[index].is_current;
+
+        if (updated[index].is_current) {
+            updated[index].end_date = null;
+        }
+
+        onChange(updated);
     }
 
     return (
@@ -98,12 +111,23 @@ export default function StepExperience({
 
                             <input
                                 type="month"
-                                value={exp.end_date}
+                                value={exp.end_date ?? ""}
+                                disabled={exp.is_current}
                                 onChange={(e) =>
                                     handleChange(index, "end_date", e.target.value)
                                 }
-                                className="w-full border rounded-lg px-3 py-2"
+                                className={`w-full border rounded-lg px-3 py-2 ${exp.is_current ? "bg-gray-200 cursor-not-allowed" : ""
+                                    }`}
                             />
+
+                            <label className="flex items-center mt-2 text-sm gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={exp.is_current || false}
+                                    onChange={() => toggleCurrent(index)}
+                                />
+                                Emprego atual
+                            </label>
                         </div>
 
                     </div>
