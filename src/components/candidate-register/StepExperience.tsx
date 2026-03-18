@@ -1,4 +1,8 @@
 import React from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { parseYearMonth, formatToYearMonth } from "../../utils/date";
+import CustomDateInput from "../CustomDateInput";
 
 type ExperienceItem = {
     company: string;
@@ -112,13 +116,15 @@ export default function StepExperience({
                                 Data início
                             </label>
 
-                            <input
-                                type="month"
-                                value={exp.start_date}
-                                onChange={(e) =>
-                                    handleChange(index, "start_date", e.target.value)
+                            <DatePicker
+                                selected={parseYearMonth(exp.start_date)}
+                                onChange={(date: Date | null) =>
+                                    handleChange(index, "start_date", formatToYearMonth(date))
                                 }
-                                className="w-full border rounded-lg px-3 py-2"
+                                showMonthYearPicker
+                                dateFormat="MM/yyyy"
+                                maxDate={new Date()}
+                                customInput={<CustomDateInput placeholder="Selecione mês/ano" />}
                             />
                         </div>
 
@@ -127,15 +133,16 @@ export default function StepExperience({
                                 Data fim
                             </label>
 
-                            <input
-                                type="month"
-                                value={exp.end_date ?? ""}
-                                disabled={exp.is_current}
-                                onChange={(e) =>
-                                    handleChange(index, "end_date", e.target.value)
+                            <DatePicker
+                                selected={parseYearMonth(exp.end_date)}
+                                onChange={(date: Date | null) =>
+                                    handleChange(index, "end_date", formatToYearMonth(date))
                                 }
-                                className={`w-full border rounded-lg px-3 py-2 ${exp.is_current ? "bg-gray-200 cursor-not-allowed" : ""
-                                    }`}
+                                showMonthYearPicker
+                                dateFormat="MM/yyyy"
+                                maxDate={new Date()}
+                                disabled={exp.is_current}
+                                customInput={<CustomDateInput placeholder="Selecione mês/ano" />}
                             />
 
                             <label className="flex items-center mt-2 text-sm gap-2">
