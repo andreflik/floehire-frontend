@@ -1,6 +1,7 @@
 import React from "react";
 
 type ExperienceItem = {
+    company: string;
     job_title: string;
     start_date: string;
     end_date: string | null;
@@ -36,6 +37,7 @@ export default function StepExperience({
         onChange([
             ...experiences,
             {
+                company: "",
                 job_title: "",
                 start_date: "",
                 end_date: null,
@@ -70,6 +72,22 @@ export default function StepExperience({
 
             {experiences.map((exp, index) => (
                 <div key={index} className="border rounded-lg p-4 mb-4">
+
+                    <div className="mb-3">
+                        <label className="block text-sm font-medium mb-1">
+                            Empresa
+                        </label>
+
+                        <input
+                            type="text"
+                            value={exp.company}
+                            onChange={(e) =>
+                                handleChange(index, "company", e.target.value)
+                            }
+                            className="w-full border rounded-lg px-3 py-2"
+                            placeholder="Ex: Google, Nubank, Startup X"
+                        />
+                    </div>
 
                     <div className="mb-3">
                         <label className="block text-sm font-medium mb-1">
