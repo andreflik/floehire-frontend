@@ -16,6 +16,21 @@ type EducationProps = {
     onBack: () => void;
 };
 
+const escolaridades = [
+    "Ensino Médio",
+    "Técnico",
+    "Graduação Completa",
+    "Graduação Incompleta",
+    "Pós-Graduação Incompleta",
+    "Pós-Graduação Completa",
+    "Mestrado Incompleto",
+    "Mestrado Completo",
+];
+
+const currentYear = new Date().getFullYear();
+
+const anos = Array.from({ length: 60 }, (_, i) => String(currentYear - i));
+
 export default function StepEducation({
     education,
     onChange,
@@ -93,14 +108,20 @@ export default function StepEducation({
                         </button>
                     </div>
 
-                    <input
-                        placeholder="Escolaridade"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5"
+                    <select
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white"
                         value={item.escolaridade}
                         onChange={(e) =>
                             handleChange(index, "escolaridade", e.target.value)
                         }
-                    />
+                    >
+                        <option value="">Selecione a escolaridade</option>
+                        {escolaridades.map((esc) => (
+                            <option key={esc} value={esc}>
+                                {esc}
+                            </option>
+                        ))}
+                    </select>
 
                     <input
                         placeholder="Curso"
@@ -120,15 +141,20 @@ export default function StepEducation({
                         }
                     />
 
-                    <input
-                        type="number"
-                        placeholder="Ano de conclusão"
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5"
+                    <select
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white"
                         value={item.ano_conclusao}
                         onChange={(e) =>
                             handleChange(index, "ano_conclusao", e.target.value)
                         }
-                    />
+                    >
+                        <option value="">Selecione o ano de conclusão</option>
+                        {anos.map((ano) => (
+                            <option key={ano} value={ano}>
+                                {ano}
+                            </option>
+                        ))}
+                    </select>
 
                     <input
                         placeholder="Certificações"
