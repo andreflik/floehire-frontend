@@ -21,9 +21,18 @@ export default function StepBasicInfo({ data, onChange, onNext }: Props) {
     function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
-        // Validação mínima
         if (!data.full_name || !data.email || !data.password) {
             alert("Preencha nome, email e senha");
+            return;
+        }
+
+        if (data.password.length < 6) {
+            alert("A senha deve ter no mínimo 6 caracteres");
+            return;
+        }
+
+        if (data.password !== data.confirm_password) {
+            alert("As senhas não coincidem");
             return;
         }
 
@@ -82,6 +91,20 @@ export default function StepBasicInfo({ data, onChange, onNext }: Props) {
                     onChange={handleChange}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5"
                     placeholder="Crie uma senha"
+                />
+            </div>
+
+            <div>
+                <label className="block text-sm text-gray-700 mb-1">
+                    Confirmar senha *
+                </label>
+                <input
+                    type="password"
+                    name="confirm_password"
+                    value={data.confirm_password || ""}
+                    onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5"
+                    placeholder="Confirme sua senha"
                 />
             </div>
 

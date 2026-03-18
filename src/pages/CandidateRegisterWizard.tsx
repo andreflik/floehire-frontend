@@ -9,6 +9,7 @@ export type CandidateFormData = {
     full_name: string;
     email: string;
     password: string;
+    confirm_password?: string;
     phone: string;
     city: string;
     state: string;
@@ -86,10 +87,18 @@ export default function CandidateRegisterWizard() {
         setError(null);
 
         try {
+            if (formData.password !== formData.confirm_password) {
+                setError("As senhas não coincidem");
+                setLoading(false);
+                return;
+            }
+
             const edu = education[0];
 
+            const { confirm_password, ...basicData } = formData;
+
             const payload = {
-                ...formData,
+                ...basicData,
 
                 escolaridade: edu.escolaridade,
                 curso: edu.curso,
