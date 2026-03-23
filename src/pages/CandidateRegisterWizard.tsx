@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import StepBasicInfo from "../components/candidate-register/StepBasicInfo";
 import StepEducation from "../components/candidate-register/StepEducation";
 import StepExperience from "../components/candidate-register/StepExperience";
@@ -36,6 +37,7 @@ type ExperienceItem = {
 };
 
 export default function CandidateRegisterWizard() {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -126,6 +128,16 @@ export default function CandidateRegisterWizard() {
             setLoading(false);
         }
     }
+
+    useEffect(() => {
+        if (success) {
+            const timer = setTimeout(() => {
+                navigate("/login/candidate");
+            }, 2000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [success, navigate]);
 
     if (success) {
         return (
